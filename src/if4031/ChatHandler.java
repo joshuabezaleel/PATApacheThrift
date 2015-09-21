@@ -7,7 +7,6 @@
 package if4031;
 
 import org.apache.thrift.TException;
-import if4031.ChatService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +19,7 @@ public class ChatHandler implements ChatService.Iface{
     
     @Override
     public boolean nick(String name) throws TException {
+        System.out.println("nick("+name+")");
         if(users.get(name)==null){
             users.put(name, "");
             return true;
@@ -31,6 +31,7 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public String anonNick() throws TException {
+        System.out.println("anonNick()");
         String tmp = generator.randomIdentifier();
         users.put(tmp,"");
         return tmp;
@@ -38,6 +39,7 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public boolean join(String userName, String channel) throws TException {
+        System.out.println("join("+userName+","+channel+")");
         if(channels.get(channel)==null){
             ArrayList<String> participant = new ArrayList<String>();
             participant.add(userName);
@@ -51,7 +53,8 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public boolean leave(String userName, String channel) throws TException {
-       if(channels.get(channel)==null){
+       System.out.println("leave("+userName+","+channel+")");
+        if(channels.get(channel)==null){
            return false;
        }
        else{
@@ -62,6 +65,7 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public boolean exit(String userName) throws TException {
+        System.out.println("exit("+userName+")");
         channels.keySet().stream().forEach((tmpChannel) -> {
             while(channels.get(tmpChannel).remove(userName)){
                 // needeed?
@@ -73,6 +77,7 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public boolean send(String message, String channel) throws TException {
+        System.out.println("send("+message+","+channel+")");
         if(channel.equals("")){
             channels.keySet().stream().forEach((tmpChannel) -> {
                 channels.get(tmpChannel).stream().forEach((name) -> {
@@ -93,6 +98,7 @@ public class ChatHandler implements ChatService.Iface{
 
     @Override
     public String receive(String userName) throws TException {
+        System.out.println("receive("+userName+")");
         String tmp = users.get(userName);
         users.remove(userName);
         return tmp;
