@@ -6,10 +6,13 @@ import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
+import org.apache.log4j.BasicConfigurator;
+
 public class ChatServer {
     public static ChatHandler handler;
     public static ChatService.Processor processor;
     public static void main(String [] args) {
+        BasicConfigurator.configure();
         try {
             handler = new ChatHandler();
             processor = new ChatService.Processor(handler);

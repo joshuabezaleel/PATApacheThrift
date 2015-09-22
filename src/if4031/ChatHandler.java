@@ -19,7 +19,7 @@ public class ChatHandler implements ChatService.Iface{
     
     @Override
     public boolean nick(String name) throws TException {
-        System.out.println("nick("+name+")");
+         
         if(users.get(name)==null){
             users.put(name, "");
             return true;
@@ -74,7 +74,7 @@ public class ChatHandler implements ChatService.Iface{
         users.remove(userName);
         return false;
     }
-
+    
     @Override
     public boolean send(String message, String channel) throws TException {
         System.out.println("send("+message+","+channel+")");
@@ -82,15 +82,19 @@ public class ChatHandler implements ChatService.Iface{
             channels.keySet().stream().forEach((tmpChannel) -> {
                 channels.get(tmpChannel).stream().forEach((name) -> {
                     String tmp = users.get(name);
-                    tmp = tmp.concat(message+'\n');
+                    tmp = tmp.concat("@"+tmpChannel+" : "+message+"\n");
                     users.replace(name, tmp);
                 });
             });
         }
         else{ channels.get(channel).stream().forEach((name) -> {
             String tmp = users.get(name);
-            tmp = tmp.concat(message+'\n');
-            users.replace(name,tmp);
+            if(tmp==null){
+                
+            } else {
+                tmp = tmp.concat("@"+channel+" : "+message+"\n");
+                users.replace(name,tmp);
+            }
             });
         }
         return true;
@@ -100,8 +104,12 @@ public class ChatHandler implements ChatService.Iface{
     public String receive(String userName) throws TException {
         System.out.println("receive("+userName+")");
         String tmp = users.get(userName);
-        users.remove(userName);
-        return tmp;
+        if (tmp == null) {
+            return "";
+        } else {
+            users.remove(userName);
+            return tmp;
+        }
     }
 
     

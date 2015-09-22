@@ -1,6 +1,10 @@
 package if4031;
 
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -21,28 +25,54 @@ public class ChatClient {
             x.printStackTrace();
         }
     }
-    private static void perform(ChatService.Client client) throws TException
+    private static void perform(final ChatService.Client client) throws TException
     {
+        System.out.println("Mulai dengan mengetikkan /NICK <username>");
         boolean exit=false;
         Scanner cli = new Scanner(System.in);
-        String userName=null;
-        System.out.println("Mulai dengan mengetikkan /NICK <username>");
+        final StringBuilder userName = new StringBuilder();
+        
+        Timer timer = new Timer();
+        TimerTask asyncTask;
+        
+        asyncTask = new TimerTask() {  
+            @Override
+            public void run() {
+                String usernm = userName.toString();
+                try{
+                    if(usernm!=null){
+                        String received = client.receive(usernm);
+                        if (!received.isEmpty()) {
+                            System.out.println(received);
+                        }
+                    }
+                } catch (TException ex) {
+                    Logger.getLogger(ChatClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            
+            }  
+        };
+        timer.schedule(asyncTask, 0, 1000);
+        
+        
         while(!exit){
             String userInput = cli.nextLine();
+            
             String userAction = userInput.substring(0,userInput.indexOf(' '));
             String userMessage = userInput.substring(userInput.indexOf(' ')+1);
             System.out.println("Action : "+userAction+"\n"+"Message : "+userMessage);
-            
             if(userAction.equals("/NICK")){
                 if(userMessage.equals(userInput)){
                     //berarti tidak ada input <username>
-                    userName = client.anonNick();
+                    userName.delete(0, userName.length());
+                    userName.append(client.anonNick());
                     System.out.println("Anda login sebagai : "+ userName);
                 }
                 else{
                     //ada input
                     if(client.nick(userMessage)){
-                        userName = userMessage;
+                        userName.delete(0, userName.length());
+                        userName.append(userMessage);
                         System.out.println("Anda login sebagai : "+ userMessage);
                     }
                     else{
@@ -53,13 +83,13 @@ public class ChatClient {
             }
             else if(userName != null){
                 if(userAction.equals("/JOIN") && !userMessage.equals("")){
-                    client.join(userName, userMessage);
+                    client.join(userName.toString(), userMessage);
                 }
                 else if(userAction.equals("/LEAVE") && !userMessage.equals("")){
-                    client.leave(userName,userMessage);
+                    client.leave(userName.toString(),userMessage);
                 }
                 else if(userAction.equals("/EXIT")){
-                    client.exit(userName);
+                    client.exit(userName.toString());
                     exit = true;
                 }
                 else if(userAction.charAt(0) == '@'){
@@ -70,5 +100,7 @@ public class ChatClient {
                 }
             }
         }
+        timer.cancel();
+        timer.purge();
     }
 }
