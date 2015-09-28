@@ -19,9 +19,12 @@ public class ChatHandler implements ChatService.Iface{
     
     @Override
     public boolean nick(String name) throws TException {
-         
-        if(users.get(name)==null){
-            users.put(name, "");
+        System.out.println("nick("+name+")"); 
+        System.out.println(users.size());
+        System.out.println(users);
+        if(!users.containsKey(name)){
+            System.out.println(users.get(name));
+            users.put(name, "#");
             return true;
         }
         else{
@@ -40,7 +43,7 @@ public class ChatHandler implements ChatService.Iface{
     @Override
     public boolean join(String userName, String channel) throws TException {
         System.out.println("join("+userName+","+channel+")");
-        if(channels.get(channel)==null){
+        if(!channels.containsKey(channel)){
             ArrayList<String> participant = new ArrayList<String>();
             participant.add(userName);
             channels.put(channel, participant);
@@ -54,12 +57,14 @@ public class ChatHandler implements ChatService.Iface{
     @Override
     public boolean leave(String userName, String channel) throws TException {
        System.out.println("leave("+userName+","+channel+")");
-        if(channels.get(channel)==null){
+        if(!channels.containsKey(channel)){
            return false;
        }
        else{
-           channels.get(channel).remove(userName);
-           return true;
+             channels.get(channel).stream().forEach((name) -> {
+                    System.out.println(name);
+             });
+           return channels.get(channel).remove(userName);
        }
     }
 
@@ -75,41 +80,52 @@ public class ChatHandler implements ChatService.Iface{
         return false;
     }
     
-    @Override
-    public boolean send(String message, String channel) throws TException {
-        System.out.println("send("+message+","+channel+")");
-        if(channel.equals("")){
-            channels.keySet().stream().forEach((tmpChannel) -> {
-                channels.get(tmpChannel).stream().forEach((name) -> {
-                    String tmp = users.get(name);
-                    tmp = tmp.concat("@"+tmpChannel+" : "+message+"\n");
-                    users.replace(name, tmp);
-                });
-            });
-        }
-        else{ channels.get(channel).stream().forEach((name) -> {
-            String tmp = users.get(name);
-            if(tmp==null){
-                
-            } else {
-                tmp = tmp.concat("@"+channel+" : "+message+"\n");
-                users.replace(name,tmp);
-            }
-            });
-        }
-        return true;
-    }
+
 
     @Override
     public String receive(String userName) throws TException {
         System.out.println("receive("+userName+")");
-        String tmp = users.get(userName);
-        if (tmp == null) {
+        
+        if (!users.containsKey(userName)) {
             return "";
         } else {
-            users.remove(userName);
+            String tmp = users.get(userName);
+            users.replace(userName,"");
             return tmp;
         }
+    }
+
+    @Override
+    public boolean send(String userName, String message, String channel) throws TException {
+         System.out.println("send("+userName+","+message+","+channel+")");
+        if(channel.equals("")){
+            channels.keySet().stream().forEach((tmpChannel) -> {
+                if(channels.get(tmpChannel).contains(userName)){
+                    channels.get(tmpChannel).stream().forEach((name) -> {
+                        String tmp = users.get(name);
+                        tmp = tmp.concat("@"+tmpChannel+" "+userName+": "+message+"\n");
+                        users.replace(name, tmp);
+                    });
+                }
+            });
+        }
+        else{ 
+            if(!channels.get(channel).contains(userName)){
+                return false;
+            }
+            channels.get(channel).stream().forEach((name) -> {
+            
+            if(!users.containsKey(name)){
+                
+            } else {
+                String tmp = users.get(name);
+                tmp = tmp.concat("@"+channel+" "+userName+": "+message+"\n");
+                users.replace(name,tmp);
+            }
+            
+            });
+        }
+        return true;
     }
 
     

@@ -93,10 +93,10 @@ public class ChatClient {
                     exit = true;
                 }
                 else if(userAction.charAt(0) == '@'){
-                    client.send(userMessage,userAction.substring(1));
+                    client.send(userName.toString(), userMessage,userAction.substring(1));
                 }
                 else{ //send broadcast message
-                    client.send(userMessage,null);
+                    client.send(userName.toString(), userInput,"");
                 }
             }
         }
