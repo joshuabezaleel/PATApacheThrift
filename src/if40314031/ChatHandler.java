@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package if4031;
+package if40314031;
 
 import org.apache.thrift.TException;
 import java.util.ArrayList;
